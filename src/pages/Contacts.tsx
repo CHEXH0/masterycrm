@@ -10,12 +10,24 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+// Define a type for new contact entries that matches what Supabase expects
+interface NewContact {
+  first_name: string;
+  last_name: string;
+  email?: string | null;
+  phone?: string | null;
+  company?: string | null;
+  position?: string | null;
+  type?: string;
+  status?: string;
+}
+
 const Contacts = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddContactDialogOpen, setIsAddContactDialogOpen] = useState(false);
-  const [newContact, setNewContact] = useState<Partial<Contact>>({
+  const [newContact, setNewContact] = useState<NewContact>({
     first_name: '',
     last_name: '',
     email: '',
@@ -71,10 +83,10 @@ const Contacts = () => {
     try {
       setIsSubmitting(true);
       
-      // Make sure we're sending a single object, not an array
+      // Ensure we're inserting a properly typed object
       const { data, error } = await supabase
         .from('contacts')
-        .insert([newContact])
+        .insert(newContact)
         .select();
 
       if (error) {
