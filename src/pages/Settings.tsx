@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { ColorCustomizer } from "@/components/theme/color-customizer";
 import {
   Select,
   SelectContent,
@@ -25,11 +27,12 @@ const Settings = () => {
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full md:w-auto grid-cols-4 md:inline-grid md:grid-cols-4">
+        <TabsList className="grid w-full md:w-auto grid-cols-5 md:inline-grid md:grid-cols-5">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
+          <TabsTrigger value="theme">Theme</TabsTrigger>
         </TabsList>
         
         <TabsContent value="profile" className="space-y-6 mt-6">
@@ -180,10 +183,11 @@ const Settings = () => {
               <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
                   <Label>Color Theme</Label>
-                  <div className="flex gap-4">
-                    <Button variant="outline" className="flex-1">Light</Button>
-                    <Button variant="outline" className="flex-1">Dark</Button>
-                    <Button variant="outline" className="flex-1">System</Button>
+                  <div className="flex flex-wrap gap-4 items-center">
+                    <ThemeToggle />
+                    <span className="text-sm text-muted-foreground">
+                      Switch between light, dark and system themes
+                    </span>
                   </div>
                 </div>
                 
@@ -219,6 +223,23 @@ const Settings = () => {
             </CardContent>
             <CardFooter className="border-t px-6 py-4">
               <Button>Apply Settings</Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="theme" className="space-y-6 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Theme Customization</CardTitle>
+              <CardDescription>
+                Customize your application's color scheme and branding.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ColorCustomizer />
+            </CardContent>
+            <CardFooter className="border-t px-6 py-4">
+              <Button>Save Theme</Button>
             </CardFooter>
           </Card>
         </TabsContent>

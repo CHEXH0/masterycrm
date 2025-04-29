@@ -32,6 +32,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { Task, TaskInput } from '@/types/task';
 
+// Define schema that matches the TaskInput interface
 const taskSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   due_date: z.string().refine((date) => !isNaN(Date.parse(date)), {
@@ -65,8 +66,8 @@ const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
     defaultValues: {
       title: task?.title || '',
       due_date: task ? formatDateForInput(task.due_date) : formatDateForInput(new Date().toISOString()),
-      priority: task?.priority as 'high' | 'medium' | 'low' || 'medium',
-      status: task?.status as 'pending' | 'completed' | 'overdue' || 'pending',
+      priority: (task?.priority as 'high' | 'medium' | 'low') || 'medium',
+      status: (task?.status as 'pending' | 'completed' | 'overdue') || 'pending',
       assignee: task?.assignee || '',
       related: task?.related || '',
     },
@@ -104,9 +105,19 @@ const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
   }, [open, task, form]);
 
   const handleSubmit = async (data: TaskFormValues) => {
+    // Ensure data is compatible with TaskInput
+    const taskInput: TaskInput = {
+      title: data.title,
+      due_date: data.due_date,
+      priority: data.priority,
+      status: data.status,
+      assignee: data.assignee,
+      related: data.related,
+    };
+    
     setIsSubmitting(true);
     try {
-      const success = await onSubmit(data);
+      const success = await onSubmit(taskInput);
       if (success) {
         onOpenChange(false);
       }

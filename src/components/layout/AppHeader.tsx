@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Bell, Search, Plus, User } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +30,8 @@ const AppHeader = () => {
       </div>
       
       <div className="flex items-center gap-4">
+        <ThemeToggle />
+        
         <Button variant="outline" size="icon">
           <Bell size={18} />
         </Button>

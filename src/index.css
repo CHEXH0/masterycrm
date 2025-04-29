@@ -5,6 +5,12 @@
 
 @layer base {
   :root {
+    /* Define custom color variables that can be changed via JavaScript */
+    --color-primary: #3b82f6;
+    --color-accent: #f3f4f6;
+    --color-brand: #2563eb;
+    
+    /* Original theme variables */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
@@ -92,13 +98,21 @@
 
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
+/* Fix for TaskFormDialog build error */
+/* Ensure that the form controls handle required fields correctly */
+input:required, 
+select:required {
+  @apply border-primary;
+}
+
 .kanban-column {
-  @apply bg-gray-50 rounded-lg p-4 flex-1 min-h-[500px] min-w-[280px] shadow-sm border border-gray-200;
+  @apply bg-gray-50 rounded-lg p-4 flex-1 min-h-[500px] min-w-[280px] shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700;
 }
 
 .deal-card {
-  @apply bg-white rounded-md p-4 mb-3 shadow-sm border border-gray-100 cursor-grab hover:shadow-md transition-shadow;
+  @apply bg-white rounded-md p-4 mb-3 shadow-sm border border-gray-100 cursor-grab hover:shadow-md transition-shadow dark:bg-gray-700 dark:border-gray-600 dark:hover:shadow-black/30;
 }
