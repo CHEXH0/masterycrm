@@ -15,35 +15,35 @@ interface Task {
 const tasks: Task[] = [
   {
     id: 1,
-    title: "Follow up with Microsoft",
+    title: "Follow up on Johnson family policy application",
     completed: false,
     priority: "high",
     dueDate: "Today"
   },
   {
     id: 2,
-    title: "Prepare presentation for Apple meeting",
+    title: "Submit claim documentation for Mary Williams",
     completed: false,
     priority: "high",
     dueDate: "Tomorrow"
   },
   {
     id: 3,
-    title: "Send proposal to Acme Corp",
+    title: "Prepare health coverage comparison for Smith family",
     completed: false,
     priority: "medium",
     dueDate: "25 Apr"
   },
   {
     id: 4,
-    title: "Update sales forecast",
+    title: "Update beneficiary information for policy #LI-7825-44B",
     completed: true,
     priority: "medium",
     dueDate: "22 Apr"
   },
   {
     id: 5,
-    title: "Schedule demo with IBM",
+    title: "Schedule annual review with Thomas Anderson",
     completed: false,
     priority: "low",
     dueDate: "27 Apr"
@@ -71,7 +71,7 @@ const TasksList = () => {
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle>My Tasks</CardTitle>
+        <CardTitle>Agent Tasks</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

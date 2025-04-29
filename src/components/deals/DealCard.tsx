@@ -27,17 +27,19 @@ const DealCard = ({ deal }: DealCardProps) => {
   };
 
   return (
-    <div className="deal-card">
-      <div className="mb-2 flex items-center justify-between">
-        <h3 className="font-medium text-sm truncate">{deal.title}</h3>
-        <Badge variant="outline">{deal.probability}%</Badge>
-      </div>
-      <p className="text-xs text-muted-foreground mb-2">{deal.company}</p>
-      <div className="flex justify-between items-center">
-        <span className="text-sm font-semibold">{formatCurrency(deal.value)}</span>
-        <span className="text-xs text-muted-foreground">{deal.closeDate}</span>
-      </div>
-    </div>
+    <Card className="policy-card">
+      <CardContent className="p-3">
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="font-medium text-sm truncate">{deal.title}</h3>
+          <Badge variant="outline">{deal.probability}%</Badge>
+        </div>
+        <p className="text-xs text-muted-foreground mb-2">{deal.company}</p>
+        <div className="flex justify-between items-center">
+          <span className="text-sm font-semibold">{formatCurrency(deal.value)}</span>
+          <span className="text-xs text-muted-foreground">{deal.closeDate}</span>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

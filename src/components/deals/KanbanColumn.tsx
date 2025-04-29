@@ -23,7 +23,7 @@ const KanbanColumn = ({ title, deals, count, value }: KanbanColumnProps) => {
       <div className="mb-4">
         <h3 className="text-sm font-medium mb-1">{title}</h3>
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{count} deals</span>
+          <span>{count} policies</span>
           <span>{formatCurrency(value)}</span>
         </div>
       </div>

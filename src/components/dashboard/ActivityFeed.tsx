@@ -18,29 +18,29 @@ interface Activity {
 const activities: Activity[] = [
   {
     id: 1,
-    title: "New contact created",
-    description: "Emma Thompson added Microsoft Corp. as a new contact",
+    title: "New policy issued",
+    description: "Emma Thompson issued a life insurance policy for John Smith",
     timestamp: "10 min ago",
     user: { name: "Emma Thompson", initials: "ET" }
   },
   {
     id: 2,
-    title: "Deal status updated",
-    description: "John moved Enterprise Deal from Negotiation to Closed Won",
+    title: "Claim processed",
+    description: "John approved health claim #HC-2023-0472 for $1,250",
     timestamp: "1 hour ago",
     user: { name: "John Doe", initials: "JD" }
   },
   {
     id: 3,
-    title: "Meeting scheduled",
-    description: "Sarah scheduled a demo meeting with Apple Inc.",
+    title: "Client meeting scheduled",
+    description: "Sarah scheduled a policy review with Mary Johnson",
     timestamp: "3 hours ago",
     user: { name: "Sarah Wilson", initials: "SW" }
   },
   {
     id: 4,
-    title: "Task completed",
-    description: "Michael completed 'Send proposal to Acme Corp'",
+    title: "Policy renewal",
+    description: "Michael processed renewal for Policy #LI-7825-44B",
     timestamp: "Yesterday",
     user: { name: "Michael Johnson", initials: "MJ" }
   },

@@ -9,7 +9,190 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      beneficiaries: {
+        Row: {
+          contact_info: string | null
+          created_at: string
+          first_name: string
+          id: string
+          last_name: string
+          percentage: number
+          policy_id: string
+          relationship: string
+          updated_at: string
+        }
+        Insert: {
+          contact_info?: string | null
+          created_at?: string
+          first_name: string
+          id?: string
+          last_name: string
+          percentage: number
+          policy_id: string
+          relationship: string
+          updated_at?: string
+        }
+        Update: {
+          contact_info?: string | null
+          created_at?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          percentage?: number
+          policy_id?: string
+          relationship?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beneficiaries_policy_id_fkey"
+            columns: ["policy_id"]
+            isOneToOne: false
+            referencedRelation: "policies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      claims: {
+        Row: {
+          amount: number
+          claim_number: string
+          created_at: string
+          description: string | null
+          filed_date: string
+          id: string
+          policy_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          claim_number: string
+          created_at?: string
+          description?: string | null
+          filed_date: string
+          id?: string
+          policy_id: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          claim_number?: string
+          created_at?: string
+          description?: string | null
+          filed_date?: string
+          id?: string
+          policy_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claims_policy_id_fkey"
+            columns: ["policy_id"]
+            isOneToOne: false
+            referencedRelation: "policies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      health_profiles: {
+        Row: {
+          alcohol_use: boolean | null
+          allergies: string | null
+          blood_type: string | null
+          client_id: string
+          conditions: string | null
+          created_at: string
+          family_medical_history: string | null
+          height: string | null
+          id: string
+          medications: string | null
+          tobacco_use: boolean | null
+          updated_at: string
+          weight: string | null
+        }
+        Insert: {
+          alcohol_use?: boolean | null
+          allergies?: string | null
+          blood_type?: string | null
+          client_id: string
+          conditions?: string | null
+          created_at?: string
+          family_medical_history?: string | null
+          height?: string | null
+          id?: string
+          medications?: string | null
+          tobacco_use?: boolean | null
+          updated_at?: string
+          weight?: string | null
+        }
+        Update: {
+          alcohol_use?: boolean | null
+          allergies?: string | null
+          blood_type?: string | null
+          client_id?: string
+          conditions?: string | null
+          created_at?: string
+          family_medical_history?: string | null
+          height?: string | null
+          id?: string
+          medications?: string | null
+          tobacco_use?: boolean | null
+          updated_at?: string
+          weight?: string | null
+        }
+        Relationships: []
+      }
+      policies: {
+        Row: {
+          agent_id: string | null
+          client_id: string
+          coverage_amount: number
+          created_at: string
+          effective_date: string
+          expiration_date: string | null
+          id: string
+          policy_number: string
+          premium: number
+          provider: string
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id?: string | null
+          client_id: string
+          coverage_amount: number
+          created_at?: string
+          effective_date: string
+          expiration_date?: string | null
+          id?: string
+          policy_number: string
+          premium: number
+          provider: string
+          status: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string | null
+          client_id?: string
+          coverage_amount?: number
+          created_at?: string
+          effective_date?: string
+          expiration_date?: string | null
+          id?: string
+          policy_number?: string
+          premium?: number
+          provider?: string
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
