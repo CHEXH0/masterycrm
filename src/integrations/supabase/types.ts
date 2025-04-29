@@ -97,6 +97,45 @@ export type Database = {
           },
         ]
       }
+      companies: {
+        Row: {
+          created_at: string
+          employees: string
+          id: string
+          industry: string
+          location: string
+          logo: string | null
+          name: string
+          status: string
+          updated_at: string
+          website: string
+        }
+        Insert: {
+          created_at?: string
+          employees: string
+          id?: string
+          industry: string
+          location: string
+          logo?: string | null
+          name: string
+          status: string
+          updated_at?: string
+          website: string
+        }
+        Update: {
+          created_at?: string
+          employees?: string
+          id?: string
+          industry?: string
+          location?: string
+          logo?: string | null
+          name?: string
+          status?: string
+          updated_at?: string
+          website?: string
+        }
+        Relationships: []
+      }
       contacts: {
         Row: {
           avatar_url: string | null
