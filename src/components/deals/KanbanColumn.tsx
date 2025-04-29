@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Droppable } from 'react-beautiful-dnd';
 import DealCard, { Deal } from './DealCard';
 
 interface KanbanColumnProps {
@@ -7,9 +8,11 @@ interface KanbanColumnProps {
   deals: Deal[];
   count: number;
   value: number;
+  id: string;
+  onDealClick?: (deal: Deal) => void;
 }
 
-const KanbanColumn = ({ title, deals, count, value }: KanbanColumnProps) => {
+const KanbanColumn = ({ title, deals, count, value, id, onDealClick }: KanbanColumnProps) => {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -19,19 +22,33 @@ const KanbanColumn = ({ title, deals, count, value }: KanbanColumnProps) => {
   };
 
   return (
-    <div className="kanban-column">
+    <div className="kanban-column min-w-[300px]">
       <div className="mb-4">
         <h3 className="text-sm font-medium mb-1">{title}</h3>
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{count} policies</span>
+          <span>{count} deals</span>
           <span>{formatCurrency(value)}</span>
         </div>
       </div>
-      <div className="space-y-3">
-        {deals.map(deal => (
-          <DealCard key={deal.id} deal={deal} />
-        ))}
-      </div>
+      <Droppable droppableId={id}>
+        {(provided) => (
+          <div 
+            className="space-y-3 min-h-[200px]" 
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+          >
+            {deals.map((deal, index) => (
+              <DealCard 
+                key={deal.id} 
+                deal={deal} 
+                index={index} 
+                onClick={onDealClick}
+              />
+            ))}
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
     </div>
   );
 };

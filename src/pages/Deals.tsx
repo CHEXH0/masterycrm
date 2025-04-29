@@ -1,38 +1,21 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Filter, ArrowDownUp } from 'lucide-react';
+import { Plus, Filter, ArrowDownUp, Loader } from 'lucide-react';
 import KanbanColumn from '@/components/deals/KanbanColumn';
 import { Deal } from '@/components/deals/DealCard';
-
-// Sample data
-const dealsData: Record<string, Deal[]> = {
-  lead: [
-    { id: 1, title: "Website Redesign", company: "Acme Corp", value: 12000, probability: 20, stage: "lead", closeDate: "May 15" },
-    { id: 2, title: "Cloud Migration", company: "Wayne Enterprises", value: 45000, probability: 20, stage: "lead", closeDate: "Jun 22" },
-    { id: 3, title: "Mobile App Development", company: "Stark Industries", value: 35000, probability: 15, stage: "lead", closeDate: "Jul 5" },
-  ],
-  discovery: [
-    { id: 4, title: "Data Analytics Platform", company: "LexCorp", value: 55000, probability: 35, stage: "discovery", closeDate: "May 30" },
-    { id: 5, title: "CRM Implementation", company: "Globex", value: 28000, probability: 40, stage: "discovery", closeDate: "Jun 10" },
-  ],
-  proposal: [
-    { id: 6, title: "Security Assessment", company: "Umbrella Corp", value: 15000, probability: 60, stage: "proposal", closeDate: "May 20" },
-    { id: 7, title: "Digital Marketing Campaign", company: "Massive Dynamics", value: 32000, probability: 65, stage: "proposal", closeDate: "May 18" },
-    { id: 8, title: "ERP System", company: "Cyberdyne Systems", value: 120000, probability: 55, stage: "proposal", closeDate: "Jul 15" },
-  ],
-  negotiation: [
-    { id: 9, title: "Custom Software Development", company: "Oscorp", value: 85000, probability: 80, stage: "negotiation", closeDate: "May 12" },
-    { id: 10, title: "IT Infrastructure Upgrade", company: "Soylent Corp", value: 65000, probability: 75, stage: "negotiation", closeDate: "May 25" },
-  ],
-  "closed-won": [
-    { id: 11, title: "Network Security Solution", company: "Initech", value: 42000, probability: 100, stage: "closed-won", closeDate: "Apr 28" },
-    { id: 12, title: "SaaS Platform Subscription", company: "Hooli", value: 36000, probability: 100, stage: "closed-won", closeDate: "Apr 15" },
-  ],
-  "closed-lost": [
-    { id: 13, title: "AI Implementation", company: "Xanatos Enterprises", value: 150000, probability: 0, stage: "closed-lost", closeDate: "Apr 10" }
-  ],
-};
+import { DragDropContext, DropResult } from 'react-beautiful-dnd';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import DealForm from '@/components/deals/DealForm';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 const stageLabels: Record<string, string> = {
   "lead": "Lead",
@@ -43,11 +26,242 @@ const stageLabels: Record<string, string> = {
   "closed-lost": "Closed Lost"
 };
 
-const calculateTotalValue = (deals: Deal[]) => {
-  return deals.reduce((sum, deal) => sum + deal.value, 0);
-};
+const stageOrder = ["lead", "discovery", "proposal", "negotiation", "closed-won", "closed-lost"];
 
 const Deals = () => {
+  const { toast } = useToast();
+  
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
+
+  // Group deals by stage
+  const dealsByStage = React.useMemo(() => {
+    const grouped = stageOrder.reduce((acc, stage) => {
+      acc[stage] = deals.filter(deal => deal.stage === stage);
+      return acc;
+    }, {} as Record<string, Deal[]>);
+    
+    return grouped;
+  }, [deals]);
+
+  // Calculate total value for each stage
+  const calculateTotalValue = (deals: Deal[]) => {
+    return deals.reduce((sum, deal) => sum + Number(deal.value), 0);
+  };
+
+  // Fetch deals from Supabase
+  const fetchDeals = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('deals')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      setDeals(data as Deal[]);
+    } catch (error) {
+      console.error('Error fetching deals:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load deals. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle adding a new deal
+  const handleAddDeal = async (formData: any) => {
+    try {
+      setIsSubmitting(true);
+      
+      const { data, error } = await supabase
+        .from('deals')
+        .insert([
+          {
+            title: formData.title,
+            company: formData.company,
+            value: formData.value,
+            probability: formData.probability,
+            stage: formData.stage,
+            close_date: formData.close_date,
+          }
+        ])
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Deal has been added successfully.",
+      });
+      
+      setIsAddDialogOpen(false);
+      fetchDeals(); // Refresh the deals list
+    } catch (error) {
+      console.error('Error adding deal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add deal. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle updating a deal
+  const handleUpdateDeal = async (formData: any) => {
+    if (!selectedDeal) return;
+    
+    try {
+      setIsSubmitting(true);
+      
+      const { error } = await supabase
+        .from('deals')
+        .update({
+          title: formData.title,
+          company: formData.company,
+          value: formData.value,
+          probability: formData.probability,
+          stage: formData.stage,
+          close_date: formData.close_date,
+        })
+        .eq('id', selectedDeal.id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Deal has been updated successfully.",
+      });
+      
+      setIsEditSheetOpen(false);
+      setSelectedDeal(null);
+      fetchDeals(); // Refresh the deals list
+    } catch (error) {
+      console.error('Error updating deal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update deal. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle deleting a deal
+  const handleDeleteDeal = async () => {
+    if (!selectedDeal) return;
+    
+    try {
+      setIsSubmitting(true);
+      
+      const { error } = await supabase
+        .from('deals')
+        .delete()
+        .eq('id', selectedDeal.id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Deal has been deleted successfully.",
+      });
+      
+      setIsEditSheetOpen(false);
+      setSelectedDeal(null);
+      fetchDeals(); // Refresh the deals list
+    } catch (error) {
+      console.error('Error deleting deal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete deal. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle drag and drop
+  const handleDragEnd = async (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+
+    // Return if dropped outside a droppable area or in the same position
+    if (!destination || 
+        (destination.droppableId === source.droppableId && 
+         destination.index === source.index)) {
+      return;
+    }
+
+    // Find the deal that was dragged
+    const draggedDeal = deals.find(deal => deal.id.toString() === draggableId);
+    if (!draggedDeal) return;
+
+    try {
+      // Update the deal's stage in Supabase
+      const { error } = await supabase
+        .from('deals')
+        .update({ stage: destination.droppableId })
+        .eq('id', draggedDeal.id);
+
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
+      const newDeals = [...deals];
+      const draggedDealIndex = newDeals.findIndex(deal => deal.id.toString() === draggableId);
+      
+      newDeals[draggedDealIndex] = {
+        ...newDeals[draggedDealIndex],
+        stage: destination.droppableId as any
+      };
+      
+      setDeals(newDeals);
+
+      toast({
+        title: "Success",
+        description: `Deal moved to ${stageLabels[destination.droppableId]}`,
+      });
+    } catch (error) {
+      console.error('Error updating deal stage:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update deal. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle clicking on a deal card
+  const handleDealClick = (deal: Deal) => {
+    setSelectedDeal(deal);
+    setIsEditSheetOpen(true);
+  };
+
+  // Fetch deals on component mount
+  useEffect(() => {
+    fetchDeals();
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -59,23 +273,80 @@ const Deals = () => {
           <Button variant="outline" size="sm">
             <ArrowDownUp className="h-4 w-4 mr-2" /> Sort
           </Button>
-          <Button size="sm">
+          <Button size="sm" onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" /> New Deal
           </Button>
         </div>
       </div>
       
-      <div className="flex gap-6 overflow-auto pb-6">
-        {Object.keys(dealsData).map((stage) => (
-          <KanbanColumn 
-            key={stage}
-            title={stageLabels[stage]}
-            deals={dealsData[stage]}
-            count={dealsData[stage].length}
-            value={calculateTotalValue(dealsData[stage])}
+      {isLoading ? (
+        <div className="flex justify-center items-center py-20">
+          <Loader className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : (
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="flex gap-6 overflow-auto pb-6">
+            {stageOrder.map((stage) => (
+              <KanbanColumn 
+                key={stage}
+                id={stage}
+                title={stageLabels[stage]}
+                deals={dealsByStage[stage] || []}
+                count={(dealsByStage[stage] || []).length}
+                value={calculateTotalValue(dealsByStage[stage] || [])}
+                onDealClick={handleDealClick}
+              />
+            ))}
+          </div>
+        </DragDropContext>
+      )}
+
+      {/* Add Deal Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add New Deal</DialogTitle>
+            <DialogDescription>
+              Enter deal details. Click save when you're done.
+            </DialogDescription>
+          </DialogHeader>
+          <DealForm 
+            onSubmit={handleAddDeal} 
+            isSubmitting={isSubmitting} 
           />
-        ))}
-      </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Deal Sheet */}
+      <Sheet open={isEditSheetOpen} onOpenChange={(open) => {
+        setIsEditSheetOpen(open);
+        if (!open) setSelectedDeal(null);
+      }}>
+        <SheetContent className="sm:max-w-[500px] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Edit Deal</SheetTitle>
+          </SheetHeader>
+          {selectedDeal && (
+            <div className="py-6">
+              <DealForm 
+                initialData={selectedDeal} 
+                onSubmit={handleUpdateDeal} 
+                isSubmitting={isSubmitting} 
+              />
+              <div className="mt-6 pt-6 border-t">
+                <Button 
+                  variant="destructive" 
+                  className="w-full" 
+                  onClick={handleDeleteDeal}
+                  disabled={isSubmitting}
+                >
+                  Delete Deal
+                </Button>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

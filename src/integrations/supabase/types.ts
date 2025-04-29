@@ -184,6 +184,42 @@ export type Database = {
         }
         Relationships: []
       }
+      deals: {
+        Row: {
+          close_date: string
+          company: string
+          created_at: string
+          id: string
+          probability: number
+          stage: string
+          title: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          close_date: string
+          company: string
+          created_at?: string
+          id?: string
+          probability: number
+          stage: string
+          title: string
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          close_date?: string
+          company?: string
+          created_at?: string
+          id?: string
+          probability?: number
+          stage?: string
+          title?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: []
+      }
       health_profiles: {
         Row: {
           alcohol_use: boolean | null
