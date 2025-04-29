@@ -1,93 +1,145 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Plus, Filter } from 'lucide-react';
-import ContactCard, { Contact } from '@/components/contacts/ContactCard';
+import { Search, Plus, Filter, Loader2 } from 'lucide-react';
+import ContactCard from '@/components/contacts/ContactCard';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Sample data for contacts
-const sampleContacts: Contact[] = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john.doe@acmecorp.com",
-    phone: "(555) 123-4567",
-    company: "Acme Corporation",
-    position: "CEO",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane.smith@globex.com",
-    phone: "(555) 234-5678",
-    company: "Globex Industries",
-    position: "Sales Manager",
-  },
-  {
-    id: 3,
-    name: "Robert Johnson",
-    email: "robert.j@massive.co",
-    phone: "(555) 345-6789",
-    company: "Massive Dynamics",
-    position: "CTO",
-  },
-  {
-    id: 4,
-    name: "Emily Brown",
-    email: "emily.b@wayne.com",
-    phone: "(555) 456-7890",
-    company: "Wayne Enterprises",
-    position: "Marketing Director",
-  },
-  {
-    id: 5,
-    name: "Michael Wilson",
-    email: "michael.w@stark.com",
-    phone: "(555) 567-8901",
-    company: "Stark Industries",
-    position: "Product Manager",
-  },
-  {
-    id: 6,
-    name: "Lisa Davis",
-    email: "lisa.d@oscorp.com",
-    phone: "(555) 678-9012",
-    company: "Oscorp",
-    position: "HR Director",
-  },
-  {
-    id: 7,
-    name: "David Martinez",
-    email: "david.m@umbrella.com",
-    phone: "(555) 789-0123",
-    company: "Umbrella Corp",
-    position: "Research Lead",
-  },
-  {
-    id: 8,
-    name: "Sarah Johnson",
-    email: "sarah.j@lexcorp.com",
-    phone: "(555) 890-1234",
-    company: "LexCorp",
-    position: "VP of Sales",
-  },
-];
+export interface Contact {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  phone: string | null;
+  company: string | null;
+  position: string | null;
+  notes: string | null;
+  avatar_url: string | null;
+  type: 'prospect' | 'client' | 'lead' | 'referral';
+  status: 'active' | 'inactive' | 'archived';
+}
 
 const Contacts = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [contacts, setContacts] = useState<Contact[]>(sampleContacts);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAddContactDialogOpen, setIsAddContactDialogOpen] = useState(false);
+  const [newContact, setNewContact] = useState<Partial<Contact>>({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    company: '',
+    position: '',
+    type: 'prospect',
+    status: 'active'
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchContacts();
+  }, []);
+
+  const fetchContacts = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching contacts:', error);
+        toast({
+          variant: "destructive",
+          title: "Failed to load contacts",
+          description: error.message
+        });
+      } else {
+        setContacts(data || []);
+      }
+    } catch (err) {
+      console.error('Error in fetchContacts:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddContact = async () => {
+    if (!newContact.first_name || !newContact.last_name) {
+      toast({
+        variant: "destructive",
+        title: "Missing required fields",
+        description: "First name and last name are required."
+      });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const { data, error } = await supabase
+        .from('contacts')
+        .insert([newContact])
+        .select();
+
+      if (error) {
+        console.error('Error adding contact:', error);
+        toast({
+          variant: "destructive",
+          title: "Failed to add contact",
+          description: error.message
+        });
+      } else {
+        setContacts(prevContacts => [...(data || []), ...prevContacts]);
+        setIsAddContactDialogOpen(false);
+        setNewContact({
+          first_name: '',
+          last_name: '',
+          email: '',
+          phone: '',
+          company: '',
+          position: '',
+          type: 'prospect',
+          status: 'active'
+        });
+        toast({
+          title: "Contact added",
+          description: "The contact has been added successfully."
+        });
+      }
+    } catch (err) {
+      console.error('Error in handleAddContact:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const filteredContacts = contacts.filter(contact => 
-    contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    contact.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    contact.company.toLowerCase().includes(searchQuery.toLowerCase())
+    `${contact.first_name} ${contact.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (contact.email && contact.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (contact.company && contact.company.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewContact(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setNewContact(prev => ({ ...prev, [name]: value }));
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Contacts</h1>
-        <Button>
+        <h1 className="text-3xl font-bold">Insurance Contacts</h1>
+        <Button onClick={() => setIsAddContactDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> Add Contact
         </Button>
       </div>
@@ -107,18 +159,148 @@ const Contacts = () => {
         </Button>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredContacts.map((contact) => (
-          <ContactCard key={contact.id} contact={contact} />
-        ))}
-      </div>
-      
-      {filteredContacts.length === 0 && (
-        <div className="text-center py-12">
-          <h3 className="text-lg font-medium">No contacts found</h3>
-          <p className="text-muted-foreground mt-1">Try adjusting your search criteria</p>
+      {isLoading ? (
+        <div className="flex justify-center items-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredContacts.map((contact) => (
+              <ContactCard key={contact.id} contact={contact} />
+            ))}
+          </div>
+          
+          {filteredContacts.length === 0 && !isLoading && (
+            <div className="text-center py-12">
+              <h3 className="text-lg font-medium">No contacts found</h3>
+              <p className="text-muted-foreground mt-1">Try adjusting your search criteria or add new contacts</p>
+            </div>
+          )}
+        </>
       )}
+
+      <Dialog open={isAddContactDialogOpen} onOpenChange={setIsAddContactDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Contact</DialogTitle>
+            <DialogDescription>
+              Enter the details of the new insurance contact.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="first_name">First Name*</Label>
+                <Input
+                  id="first_name"
+                  name="first_name"
+                  value={newContact.first_name}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="last_name">Last Name*</Label>
+                <Input
+                  id="last_name"
+                  name="last_name"
+                  value={newContact.last_name}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={newContact.email || ''}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone</Label>
+              <Input
+                id="phone"
+                name="phone"
+                value={newContact.phone || ''}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="company">Company</Label>
+                <Input
+                  id="company"
+                  name="company"
+                  value={newContact.company || ''}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="position">Position</Label>
+                <Input
+                  id="position"
+                  name="position"
+                  value={newContact.position || ''}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="type">Contact Type</Label>
+                <Select
+                  value={newContact.type}
+                  onValueChange={(value) => handleSelectChange('type', value)}
+                >
+                  <SelectTrigger id="type">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="prospect">Prospect</SelectItem>
+                    <SelectItem value="client">Client</SelectItem>
+                    <SelectItem value="lead">Lead</SelectItem>
+                    <SelectItem value="referral">Referral</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={newContact.status}
+                  onValueChange={(value) => handleSelectChange('status', value)}
+                >
+                  <SelectTrigger id="status">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="archived">Archived</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddContactDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddContact} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : "Add Contact"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
