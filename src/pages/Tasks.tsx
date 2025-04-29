@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import TasksTable from '@/components/tasks/TasksTable';
 import TaskFilters from '@/components/tasks/TaskFilters';
 import TaskFormDialog from '@/components/tasks/TaskFormDialog';
-import { Task } from '@/types/task';
+import { Task, TaskInput } from '@/types/task';
 
 const Tasks = () => {
   const { toast } = useToast();
@@ -46,7 +46,7 @@ const Tasks = () => {
   };
 
   // Handle task creation
-  const handleAddTask = async (taskData: Partial<Task>) => {
+  const handleAddTask = async (taskData: TaskInput) => {
     try {
       const { data, error } = await supabase
         .from('tasks')
@@ -75,7 +75,7 @@ const Tasks = () => {
   };
 
   // Handle task update
-  const handleUpdateTask = async (taskId: string, taskData: Partial<Task>) => {
+  const handleUpdateTask = async (taskId: string, taskData: Partial<TaskInput>) => {
     try {
       const { error } = await supabase
         .from('tasks')

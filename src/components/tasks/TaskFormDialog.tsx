@@ -30,7 +30,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import { Task } from '@/types/task';
+import { Task, TaskInput } from '@/types/task';
 
 const taskSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
@@ -48,7 +48,7 @@ type TaskFormValues = z.infer<typeof taskSchema>;
 interface TaskFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: TaskFormValues) => Promise<boolean>;
+  onSubmit: (data: TaskInput) => Promise<boolean>;
   task?: Task | null;
 }
 
