@@ -17,7 +17,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light" storageKey="synccrm-ui-theme">
+    <ThemeProvider defaultTheme="light" storageKey="masterycrm-ui-theme">
       <BrowserRouter>
         <Sonner />
         <Routes>

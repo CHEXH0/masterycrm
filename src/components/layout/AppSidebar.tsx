@@ -67,7 +67,7 @@ const AppSidebar = () => {
     <Sidebar>
       <SidebarContent>
         <div className="px-4 py-6">
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--color-primary, #3b82f6)' }}>SyncCRM</h1>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--color-primary, #3b82f6)' }}>MasteryCRM</h1>
         </div>
         
         <SidebarGroup>
