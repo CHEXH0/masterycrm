@@ -15,8 +15,11 @@ export interface Contact {
   position: string | null;
   notes: string | null;
   avatar_url: string | null;
-  type: 'prospect' | 'client' | 'lead' | 'referral';
-  status: 'active' | 'inactive' | 'archived';
+  // Update the type definition to match Supabase's string response
+  type: string;
+  status: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface ContactCardProps {

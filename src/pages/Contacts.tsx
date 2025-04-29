@@ -3,26 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Plus, Filter, Loader2 } from 'lucide-react';
-import ContactCard from '@/components/contacts/ContactCard';
+import ContactCard, { Contact } from '@/components/contacts/ContactCard';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-export interface Contact {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string | null;
-  phone: string | null;
-  company: string | null;
-  position: string | null;
-  notes: string | null;
-  avatar_url: string | null;
-  type: 'prospect' | 'client' | 'lead' | 'referral';
-  status: 'active' | 'inactive' | 'archived';
-}
 
 const Contacts = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,7 +48,8 @@ const Contacts = () => {
           description: error.message
         });
       } else {
-        setContacts(data || []);
+        // Explicitly type the data as Contact[]
+        setContacts(data as Contact[]);
       }
     } catch (err) {
       console.error('Error in fetchContacts:', err);
@@ -83,6 +70,8 @@ const Contacts = () => {
 
     try {
       setIsSubmitting(true);
+      
+      // Make sure we're sending a single object, not an array
       const { data, error } = await supabase
         .from('contacts')
         .insert([newContact])
@@ -96,7 +85,8 @@ const Contacts = () => {
           description: error.message
         });
       } else {
-        setContacts(prevContacts => [...(data || []), ...prevContacts]);
+        // Explicitly type the data as Contact[]
+        setContacts(prevContacts => [...(data as Contact[]), ...prevContacts]);
         setIsAddContactDialogOpen(false);
         setNewContact({
           first_name: '',
